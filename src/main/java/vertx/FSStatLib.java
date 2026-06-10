@@ -1,3 +1,4 @@
+package vertx;
 
 import io.vertx.core.Future;
 
