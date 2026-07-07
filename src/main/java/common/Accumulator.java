@@ -1,3 +1,5 @@
+package common;
+
 import java.util.Arrays;
 
 public class Accumulator {
@@ -8,8 +10,8 @@ public class Accumulator {
     private final int nb;
 
 
-//    public static Accumulator of(long maxFS, int nb) {
-//        return new Accumulator(new long[nb + 1], maxFS, nb, 0);
+//    public static vertx.Accumulator of(long maxFS, int nb) {
+//        return new vertx.Accumulator(new long[nb + 1], maxFS, nb, 0);
 //    }
 
     public Accumulator(long maxFS, int nb) {

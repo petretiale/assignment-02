@@ -1,4 +1,7 @@
+package vertx;
+
 import io.vertx.core.Vertx;
+import common.Accumulator;
 
 public class mainVertx {
 
