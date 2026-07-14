@@ -54,6 +54,18 @@ public class Accumulator {
         return totalFiles;
     }
 
+    public long[] getBands() {
+        return bands;
+    }
+
+    public long getMaxFS() {
+        return maxFS;
+    }
+
+    public int getNb() {
+        return nb;
+    }
+
     public void printStats() {
         long bandWidth = maxFS / nb;
 

@@ -1,9 +1,8 @@
 package vertx;
 
 import io.vertx.core.Vertx;
-import common.Accumulator;
 
-public class mainVertx {
+public class MainVertx {
 
     public static void main(String[] args) {
 
