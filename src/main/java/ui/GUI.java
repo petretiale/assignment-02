@@ -1,11 +1,11 @@
-package virtual_thread.ui;
+package ui;
 
 import common.Accumulator;
 import virtual_thread.VtController;
 
 public interface GUI {
 
-    void setController(VtController controller);
+    void setController(Controller controller);
 
     void setScanRunningState(boolean isRunning);
 

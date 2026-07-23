@@ -1,7 +1,8 @@
-package virtual_thread.ui.swing;
+package ui.swing;
 
 import common.Accumulator;
-import virtual_thread.ui.GUI;
+import ui.Controller;
+import ui.GUI;
 import virtual_thread.VtController;
 
 import javax.swing.*;
@@ -14,7 +15,7 @@ public class ScanGUI extends JFrame implements GUI {
     private final JButton startBtn;
     private final JButton stopBtn;
 
-    private VtController controller;
+    private Controller controller;
     private long lastNotificationTime = 0;
 
     public ScanGUI(){
@@ -61,7 +62,7 @@ public class ScanGUI extends JFrame implements GUI {
     }
 
     @Override
-    public void setController(VtController controller) {
+    public void setController(Controller controller) {
         this.controller = controller;
     }
 

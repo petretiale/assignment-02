@@ -1,27 +1,27 @@
-package virtual_thread;
+package vertx;
 
 import common.Accumulator;
 import ui.Controller;
 import ui.GUI;
 
-public class VtController implements Controller, VTScanListener {
+public class VertxController implements Controller, VertxScanListener{
 
     private final GUI view;
-    private final VirtualThreadFSStatLib model;
+    private final VertxFSStatLib model;
 
-    public VtController(GUI view, VirtualThreadFSStatLib statLib) {
+    public VertxController(GUI view, VertxFSStatLib model) {
         this.view = view;
-        this.model = statLib;
+        this.model = model;
     }
 
     public void startScan(String path, long maxFS, int nb) {
         view.setScanRunningState(true);
-        view.updateStatusArea("Scanning process initialized using Virtual Threads..\n");
+        view.updateStatusArea("Scanning process initialized using Vert.x Event-Loop..\n");
         model.getFSReport(path, maxFS, nb, this);
     }
 
     public void stopScan() {
-        view.updateStatusArea("\n[!] Cancellation request dispatched to Virtual Threads.\n");
+        view.updateStatusArea("\n[!] Cancellation request dispatched to Vert.x Event-Loop.\n");
         model.stopReport();
     }
 
