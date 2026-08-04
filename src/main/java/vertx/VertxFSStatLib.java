@@ -17,16 +17,12 @@ public class VertxFSStatLib implements FSStatLib {
 
     @Override
     public Future<Accumulator> getFSReport(String path, long maxFS, int nb) {
-        return processEntry(path, maxFS, nb);
-    }
-
-    private Future<Accumulator> processEntry(String path, long maxFS, int nb) {
         return fs.props(path).compose(props -> {
             if (props.isDirectory()) {
                 return fs.readDir(path).compose(entries -> {
                     List<Future<Accumulator>> futures = new ArrayList<>();
                     for (String entry : entries) {
-                        futures.add(processEntry(entry, maxFS, nb));
+                        futures.add(getFSReport(entry, maxFS, nb));
                     }
                     return Future.all(futures).map(compositeFuture -> {
                         Accumulator totalDir = new Accumulator(maxFS, nb);
