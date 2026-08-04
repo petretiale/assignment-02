@@ -1,28 +1,69 @@
 package vertx;
 
+import java.util.Arrays;
+
 public class Accumulator {
 
+    private final int totalFiles;
     private final long[] bands;
     private final long maxFS;
     private final int nb;
-    private long totalFiles = 0;
+
+
+//    public static vertx.Accumulator of(long maxFS, int nb) {
+//        return new vertx.Accumulator(new long[nb + 1], maxFS, nb, 0);
+//    }
 
     public Accumulator(long maxFS, int nb) {
-        this.bands = new long[nb + 1];
-        this.maxFS = maxFS;
-        this.nb = nb;
+        this(new long[nb + 1], maxFS, nb, 0);
     }
 
-    public void addFile(long size) {
-        this.totalFiles++;
+    private Accumulator(long[] bands, long maxFS, int nb, int totalFiles) {
+        this.bands = bands;
+        this.maxFS = maxFS;
+        this.nb = nb;
+        this.totalFiles = totalFiles;
+    }
 
+    public Accumulator addFile(long size) {
+        final var newBands = Arrays.copyOf(bands, bands.length);
         if (size >= maxFS) {
-            bands[nb]++;
+            newBands[nb]++;
+            return new Accumulator(newBands, maxFS, nb, totalFiles + 1);
         } else {
             double width = (double) maxFS / nb;
             int index = (int) (size / width);
-            bands[Math.min(index, nb - 1)]++;
+
+            if (index >= nb) {
+                index = nb - 1;
+            }
+            newBands[index]++;
+            return new Accumulator(newBands, maxFS, nb, totalFiles + 1);
         }
+    }
+
+    public Accumulator add(Accumulator acc) {
+        final var newBands = Arrays.copyOf(bands, bands.length);
+        for (int i = 0; i < bands.length; i++) {
+            newBands[i] = newBands[i] + acc.bands[i];
+        }
+        return new Accumulator(newBands, maxFS, nb, this.totalFiles + acc.totalFiles);
+    }
+
+    public int getTotalFiles() {
+        return totalFiles;
+    }
+
+    public long[] getBands() {
+        return Arrays.copyOf(bands, bands.length);
+    }
+
+    public long getMaxFS() {
+        return maxFS;
+    }
+
+    public int getNb() {
+        return nb;
     }
 
     public void printStats() {
@@ -36,6 +77,7 @@ public class Accumulator {
         for (int i = 0; i < nb; i++) {
             long low = i * bandWidth;
             long high = (i + 1) * bandWidth - 1;
+
             System.out.printf(" [%d - %d] byte: \t%d file%n", low, high, bands[i]);
         }
 
