@@ -9,20 +9,16 @@ public class RxFSStatLib{
 
     public Observable<Accumulator> getFSReport(String path, long maxFS, int nb) {
         File root = new File(path);
-        Accumulator initialAcc = new Accumulator(maxFS, nb);
 
         return processEntry(root)
                 .subscribeOn(Schedulers.io())
                 .map(File::length)
-                .scan(initialAcc, (acc, size) -> {
-                    acc.addFile(size);
-                    return acc;
-                });
+                .scan(new Accumulator(maxFS, nb), Accumulator::addFile);
     }
 
     private Observable<File> processEntry(File dir) {
         File[] files = dir.listFiles();
-
+        System.out.println(Thread.currentThread() + " ---> " + dir.getName());
         if (files == null) {
             return Observable.empty();
         }
