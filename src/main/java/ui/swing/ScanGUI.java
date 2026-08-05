@@ -94,39 +94,23 @@ public class ScanGUI extends JFrame implements GUI {
         }
     }
 
-    @Override
-    public void displayFinalReport(boolean cancelled, Accumulator finalAcc) {
+    public void displayFinalReport(boolean isCancelled, Accumulator accumulator) {
         SwingUtilities.invokeLater(() -> {
+            StringBuilder sb = new StringBuilder();
+
+            if (accumulator != null) {
+                sb.append(accumulator.getFormattedReport());
+            }
+
+            if (isCancelled) {
+                sb.append("\n--- SCANSIONE INTERROTTA ---\n");
+            } else {
+                sb.append("\n--- SCANSIONE COMPLETATA ---\n");
+            }
+
+            statsArea.setText(sb.toString());
             startBtn.setEnabled(true);
             stopBtn.setEnabled(false);
-
-            long maxFS = finalAcc.getMaxFS();
-            int nb = finalAcc.getNb();
-            long[] bands = finalAcc.getBands();
-            long bandWidth = maxFS / nb;
-
-            StringBuilder sb = new StringBuilder();
-            sb.append("--- SCAN RESULTS ---\n");
-            sb.append("===========================================\n");
-            sb.append("      REPORT STATISTICHE FILE SYSTEM       \n");
-            sb.append("===========================================\n");
-            sb.append(String.format(" Totale file analizzati: %d%n", finalAcc.getTotalFiles()));
-
-            for (int i = 0; i < nb; i++) {
-                long low = i * bandWidth;
-                long high = (i + 1) * bandWidth - 1;
-                sb.append(String.format(" [%d - %d] byte: \t%d file%n", low, high, bands[i]));
-            }
-
-            sb.append(String.format(" [>= %d] byte: \t\t%d file%n", maxFS, bands[nb]));
-            sb.append("===========================================\n");
-
-            if (cancelled) {
-                sb.append("\n[X] Scanning operation successfully cancelled.");
-            } else {
-                sb.append("\n[V] Scanning operation completed.");
-            }
-            statsArea.setText(sb.toString());
         });
     }
 }
