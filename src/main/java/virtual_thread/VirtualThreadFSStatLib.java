@@ -3,18 +3,20 @@ package virtual_thread;
 import common.Accumulator;
 
 import java.io.File;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class VirtualThreadFSStatLib implements VTFSStatLib {
 
     private final Lock statsLock = new ReentrantLock();
+    private final Lock threadsLock = new ReentrantLock();
 
-    private volatile boolean isCancelled = false;
+    private boolean isCancelled = false;
     private Accumulator currentAccumulator;
-    private ExecutorService executor;
+
+    private final List<Thread> activeThreads = new ArrayList<>();
 
     @Override
     public void getFSReport(String directoryPath, long maxFS, int nb, VTScanListener listener) {
@@ -26,18 +28,14 @@ public class VirtualThreadFSStatLib implements VTFSStatLib {
         }
 
         this.currentAccumulator = new Accumulator(maxFS, nb);
+
         Thread.ofVirtual().start(() -> {
-            this.executor = Executors.newVirtualThreadPerTaskExecutor();
             try {
-                if (!isCancelled) {
-                    executor.submit(() -> {
-                        searchTask(rootFile, listener);
-                    });
-                }
-                executor.close();
-            } catch (Exception e) {
-                e.printStackTrace();
+                registerThread(Thread.currentThread());
+                searchTask(rootFile, listener);
             } finally {
+                unregisterThread(Thread.currentThread());
+
                 Accumulator finalAcc;
                 statsLock.lock();
                 try {
@@ -45,20 +43,33 @@ public class VirtualThreadFSStatLib implements VTFSStatLib {
                 } finally {
                     statsLock.unlock();
                 }
+
                 listener.onScanFinished(isCancelled, finalAcc);
             }
         });
     }
 
     private void searchTask(File file, VTScanListener listener) {
-        if (isCancelled) return;
+        if (isCancelled || Thread.currentThread().isInterrupted()) return;
 
         try {
             File[] listFiles = file.listFiles();
+            System.out.println(Thread.currentThread());
             if (listFiles != null) {
+                List<Thread> subDirectoryThreads = new ArrayList<>();
+
                 for (File f : listFiles) {
                     if (f.isDirectory()) {
-                        searchTask(f, listener);
+                        Thread vt = Thread.ofVirtual().start(() -> {
+                            registerThread(Thread.currentThread());
+                            try {
+                                searchTask(f, listener);
+                            } finally {
+                                unregisterThread(Thread.currentThread());
+                            }
+                        });
+
+                        subDirectoryThreads.add(vt);
                     } else {
                         long size = f.length();
                         Accumulator updatedAcc;
@@ -70,9 +81,18 @@ public class VirtualThreadFSStatLib implements VTFSStatLib {
                         } finally {
                             statsLock.unlock();
                         }
+
                         if (!isCancelled) {
                             listener.onStatsUpdated(updatedAcc);
                         }
+                    }
+                }
+
+                for (Thread vt : subDirectoryThreads) {
+                    try {
+                        vt.join();
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
                     }
                 }
             }
@@ -83,10 +103,34 @@ public class VirtualThreadFSStatLib implements VTFSStatLib {
 
     public void stopReport() {
         this.isCancelled = true;
-        if (executor != null) {
-            executor.shutdownNow();
+        List<Thread> threadsToInterrupt;
+        threadsLock.lock();
+        try {
+            threadsToInterrupt = new ArrayList<>(activeThreads);
+        } finally {
+            threadsLock.unlock();
+        }
+
+        for (Thread vt : threadsToInterrupt) {
+            vt.interrupt();
         }
     }
 
+    private void registerThread(Thread t) {
+        threadsLock.lock();
+        try {
+            activeThreads.add(t);
+        } finally {
+            threadsLock.unlock();
+        }
+    }
 
+    private void unregisterThread(Thread t) {
+        threadsLock.lock();
+        try {
+            activeThreads.remove(t);
+        } finally {
+            threadsLock.unlock();
+        }
+    }
 }
