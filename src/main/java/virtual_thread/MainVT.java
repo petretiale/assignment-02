@@ -1,16 +1,18 @@
 package virtual_thread;
 
+import common.Accumulator;
 import ui.Controller;
 import ui.swing.ScanGUI;
 
-public class Main {
+public class MainVT {
 
 
     public static void main(String[] args) {
+
+        String path = System.getProperty("user.home");
         VirtualThreadFSStatLib scanner = new VirtualThreadFSStatLib();
-        ScanGUI view = new ScanGUI();
-        Controller controller = new VtController(view, scanner);
-        view.setController(controller);
-        view.setVisible(true);
+
+        Accumulator acc = scanner.getFSReport(path, 20000, 4);
+        acc.printStats();
     }
 }

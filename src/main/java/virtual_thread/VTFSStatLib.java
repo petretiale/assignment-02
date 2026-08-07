@@ -1,6 +1,8 @@
 package virtual_thread;
 
+import common.Accumulator;
+
 public interface VTFSStatLib {
 
-    void getFSReport(String directoryPath, long maxFS, int nb, VTScanListener listener);
+    Accumulator getFSReport(String directoryPath, long maxFS, int nb);
 }

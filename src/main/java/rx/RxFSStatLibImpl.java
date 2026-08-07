@@ -9,17 +9,17 @@ import java.io.File;
 public class RxFSStatLibImpl implements RxFSStatLib {
 
     @Override
-    public Single<Accumulator> getFSReport(String directoryPath, long maxFS, int nb) {
+    public Flowable<Accumulator> getFSReport(String directoryPath, long maxFS, int nb) {
         File rootDir = new File(directoryPath);
         if (!rootDir.exists() || !rootDir.isDirectory()) {
-            return Single.error(new IllegalArgumentException("Il percorso specificato non è una directory valida."));
+            return Flowable.error(new IllegalArgumentException("Il percorso specificato non è una directory valida."));
         }
 
         Accumulator initialAcc = new Accumulator(maxFS, nb);
 
         return getFilesStream(rootDir)
                 .subscribeOn(Schedulers.io())
-                .reduce(initialAcc, (acc, file) -> acc.addFile(file.length()));
+                .scan(initialAcc, (acc, file) -> acc.addFile(file.length()));
     }
 
     private Flowable<File> getFilesStream(File directory) {

@@ -3,7 +3,6 @@ package ui.swing;
 import common.Accumulator;
 import ui.Controller;
 import ui.GUI;
-import virtual_thread.VtController;
 
 import javax.swing.*;
 import java.awt.*;

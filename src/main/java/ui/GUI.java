@@ -1,7 +1,6 @@
 package ui;
 
 import common.Accumulator;
-import virtual_thread.VtController;
 
 public interface GUI {
 

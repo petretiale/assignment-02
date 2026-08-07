@@ -19,7 +19,7 @@ public class VirtualThreadFSStatLib implements VTFSStatLib {
     private final List<Thread> activeThreads = new ArrayList<>();
 
     @Override
-    public void getFSReport(String directoryPath, long maxFS, int nb, VTScanListener listener) {
+    public Accumulator getFSReport(String directoryPath, long maxFS, int nb) {
         this.isCancelled = false;
 
         File rootFile = new File(directoryPath);
@@ -29,28 +29,31 @@ public class VirtualThreadFSStatLib implements VTFSStatLib {
 
         this.currentAccumulator = new Accumulator(maxFS, nb);
 
-        Thread.ofVirtual().start(() -> {
+        Thread rootThread = Thread.ofVirtual().start(() -> {
             try {
                 registerThread(Thread.currentThread());
-                searchTask(rootFile, listener);
+                searchTask(rootFile);
             } finally {
                 unregisterThread(Thread.currentThread());
-
-                Accumulator finalAcc;
-                statsLock.lock();
-                try {
-                    finalAcc = this.currentAccumulator;
-                } finally {
-                    statsLock.unlock();
-                }
-
-                listener.onScanFinished(isCancelled, finalAcc);
             }
         });
+
+        try {
+            rootThread.join();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+
+        statsLock.lock();
+        try {
+            return this.currentAccumulator;
+        } finally {
+            statsLock.unlock();
+        }
     }
 
-    private void searchTask(File file, VTScanListener listener) {
-        if (isCancelled || Thread.currentThread().isInterrupted()) return;
+    private void searchTask(File file) {
+        if (isCancelled) return;
 
         try {
             File[] listFiles = file.listFiles();
@@ -63,7 +66,7 @@ public class VirtualThreadFSStatLib implements VTFSStatLib {
                         Thread vt = Thread.ofVirtual().start(() -> {
                             registerThread(Thread.currentThread());
                             try {
-                                searchTask(f, listener);
+                                searchTask(f);
                             } finally {
                                 unregisterThread(Thread.currentThread());
                             }
@@ -77,13 +80,8 @@ public class VirtualThreadFSStatLib implements VTFSStatLib {
                         statsLock.lock();
                         try {
                             this.currentAccumulator = this.currentAccumulator.addFile(size);
-                            updatedAcc = this.currentAccumulator;
                         } finally {
                             statsLock.unlock();
-                        }
-
-                        if (!isCancelled) {
-                            listener.onStatsUpdated(updatedAcc);
                         }
                     }
                 }
@@ -98,21 +96,6 @@ public class VirtualThreadFSStatLib implements VTFSStatLib {
             }
         } catch (Exception ex) {
             ex.printStackTrace();
-        }
-    }
-
-    public void stopReport() {
-        this.isCancelled = true;
-        List<Thread> threadsToInterrupt;
-        threadsLock.lock();
-        try {
-            threadsToInterrupt = new ArrayList<>(activeThreads);
-        } finally {
-            threadsLock.unlock();
-        }
-
-        for (Thread vt : threadsToInterrupt) {
-            vt.interrupt();
         }
     }
 
