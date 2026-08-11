@@ -10,7 +10,7 @@ public class mainVertx {
 
         Vertx vertx = Vertx.vertx();
         FSStatLib lib = new VertxFSStatLib(vertx);
-        String path = "/Users/daniele/IdeaProjects";
+        String path = "/Users/daniele";
         String path2 = "/Users/daniele/IdeaProjects/assignment-02/src";
 
         Future<Accumulator> f1 = lib.getFSReport(path, 1700, 4)

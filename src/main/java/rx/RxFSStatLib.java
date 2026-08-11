@@ -18,7 +18,6 @@ public class RxFSStatLib{
 
     private Observable<File> processEntry(File dir) {
         File[] files = dir.listFiles();
-        System.out.println(Thread.currentThread() + " ---> " + dir.getName());
         if (files == null) {
             return Observable.empty();
         }
