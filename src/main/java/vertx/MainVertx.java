@@ -3,22 +3,23 @@ package vertx;
 import io.vertx.core.Vertx;
 import common.Accumulator;
 
-public class mainVertx {
+public class MainVertx {
 
     public static void main(String[] args) {
 
         Vertx vertx = Vertx.vertx();
         FSStatLib lib = new VertxFSStatLib(vertx);
-        //String path = "/Users/alessandropetreti/IdeaProjects/assignment-02";
-        String path = System.getProperty("user.home") + "/Documents/Lab_Machine_Learning";
+        //String path = "/Users/alessandropetreti";
+        String path = System.getProperty("user.home");
+
 
         lib.getFSReport(path, 20000, 4)
                 .onSuccess(accumulator -> {
                     accumulator.printStats();
-                    //vertx.close();
+                    vertx.close();
                 }).onFailure(err -> {
                     System.out.println("An error occurred during scan: " + err.getMessage());
-                    //vertx.close();
+                    vertx.close();
                 });
     }
 }

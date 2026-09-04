@@ -1,11 +1,9 @@
 package vertx;
-
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.file.FileSystem;
 import common.Accumulator;
-
 import java.util.ArrayList;
 import java.util.List;
 

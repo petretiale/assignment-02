@@ -1,4 +1,4 @@
-package virtualThread;
+package virtual_thread;
 
 import common.Accumulator;
 

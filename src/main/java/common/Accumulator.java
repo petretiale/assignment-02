@@ -50,26 +50,43 @@ public class Accumulator {
         return new Accumulator(newBands, maxFS, nb, this.totalFiles + acc.totalFiles);
     }
 
+    public String getFormattedReport() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("===========================================\n");
+        sb.append("      REPORT STATISTICHE FILE SYSTEM       \n");
+        sb.append("===========================================\n");
+        sb.append(" Totale file analizzati: ").append(totalFiles).append("\n\n");
+        sb.append(" Distribuzione dimensioni:\n");
+
+        double bandSize = (double) maxFS / nb;
+        for (int i = 0; i < nb; i++) {
+            long min = Math.round(i * bandSize);
+            long max = Math.round((i + 1) * bandSize) - 1;
+            sb.append(String.format("  [%d - %d B]: \t%d file\n", min, max, bands[i]));
+        }
+        sb.append(String.format("  [>= %d B]: \t\t%d file\n", maxFS, bands[nb]));
+        sb.append("===========================================\n");
+
+        return sb.toString();
+    }
+
+    public void printStats() {
+        System.out.println(getFormattedReport());
+    }
+
     public int getTotalFiles() {
         return totalFiles;
     }
 
-    public void printStats() {
-        long bandWidth = maxFS / nb;
+    public long[] getBands() {
+        return bands;
+    }
 
-        System.out.println("\n===========================================");
-        System.out.println("      REPORT STATISTICHE FILE SYSTEM       ");
-        System.out.println("===========================================");
-        System.out.printf(" Totale file analizzati: %d%n", totalFiles);
+    public long getMaxFS() {
+        return maxFS;
+    }
 
-        for (int i = 0; i < nb; i++) {
-            long low = i * bandWidth;
-            long high = (i + 1) * bandWidth - 1;
-
-            System.out.printf(" [%d - %d] byte: \t%d file%n", low, high, bands[i]);
-        }
-
-        System.out.printf(" [>= %d] byte: \t\t%d file%n", maxFS, bands[nb]);
-        System.out.println("===========================================\n");
+    public int getNb() {
+        return nb;
     }
 }
